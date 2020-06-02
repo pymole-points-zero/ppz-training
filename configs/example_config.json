@@ -1,0 +1,22 @@
+{
+  "input_path": "/home/pymole/PycharmProjects/ppz-server/ppz_server/examples/2",
+
+  "num_chunks": 100000,
+  "allow_less": true,
+  "train_ratio": 0.9,
+  "model_input": "model2.h5",
+  "model_output": "model3.h5",
+  "batch_size": 128,
+
+  "upload": {
+    "url": " http://127.0.0.1:8000/upload_network",
+    "params": {
+      "blocks": 20,
+      "filters": 2,
+      "field_width": 5,
+      "field_height": 5,
+      "training_run_id": 1,
+      "prev_delta_sha": "asasf2efsdfhdkdt6uxfzgjcm"
+    }
+  }
+}

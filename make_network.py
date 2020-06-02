@@ -63,6 +63,7 @@ def residual_block(y, nb_channels_in, nb_channels_out, _strides=(1, 1), _project
 def main(args):
     # initialization of residual neural network
     # input layers
+    # TODO change input to one-hot encoding
     input_tensor = layers.Input(shape=args.input_shape)
 
     # starting convolution layers
