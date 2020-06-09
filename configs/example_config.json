@@ -1,15 +1,16 @@
 {
   "input_path": "/home/pymole/PycharmProjects/ppz-server/ppz_server/examples/2",
-
-  "num_chunks": 100000,
+  "num_chunks": 100,
   "allow_less": true,
   "train_ratio": 0.9,
   "model_input": "model2.h5",
   "model_output": "model3.h5",
-  "batch_size": 128,
+  "batch_size": 2048,
+  "lr": 0.01,
+  "momentum": 0.9,
 
   "upload": {
-    "url": " http://127.0.0.1:8000/upload_network",
+    "url": "http://127.0.0.1:8000/upload_network",
     "params": {
       "blocks": 20,
       "filters": 2,

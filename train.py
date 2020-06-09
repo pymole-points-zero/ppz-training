@@ -6,10 +6,11 @@ import random
 import argparse
 import json
 import requests
-from tensorflow import keras
 import gzip
 import io
 import tempfile
+from tensorflow import keras
+from tensorflow.keras.optimizers import SGD
 
 
 def upload(model_path, url, params):
@@ -55,11 +56,11 @@ def get_examples(latest_chunks):
     for path in latest_chunks:
         with gzip.open(path, 'rb') as f:
             example = np.load(f, allow_pickle=True)
-            print(len(example))
             examples.append(example)
 
+    # TODO shuffle this
     examples = np.concatenate(examples)
-    print(len(examples))
+    print(len(examples), 'positions')
 
     return examples
 
@@ -81,6 +82,8 @@ def get_latest_chunks(path, num_chunks, allow_less):
     chunk_paths.sort(key=os.path.getmtime, reverse=True)
 
     chunk_paths = chunk_paths[:num_chunks]
+    print('First chunk generated at ', os.path.getmtime(chunk_paths[0]))
+    print('Last chunk generated at ', os.path.getmtime(chunk_paths[-1]))
 
     random.shuffle(chunk_paths)
     return chunk_paths
@@ -97,11 +100,13 @@ def main(args):
     tmp_dir = tempfile.TemporaryDirectory()
 
     model = load_model(tmp_dir, config['model_input'])
+    model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=SGD(
+        learning_rate=config['lr'], momentum=config['momentum']))
 
     train(model, examples, config['batch_size'])
 
     if 'model_output' in config:
-        model.save(config['model_output'], save_format='h5')
+        model.save(config['model_output'], save_format='h5', include_optimizer=False)
 
     # TODO separate upload and train into different files
     if 'upload' in config:
@@ -109,14 +114,11 @@ def main(args):
             upload(config['model_output'], config['upload']['url'], config['upload']['params'])
         else:
             temp_model_path = os.path.join(os.getcwd(), 'temp_model.h5')
-            model.save(temp_model_path, save_format='h5')
+            model.save(temp_model_path, save_format='h5', include_optimizer=False)
 
             upload(temp_model_path, config['upload']['url'], config['upload']['params'])
 
             os.remove(temp_model_path)
-
-    # destroy temporary direction
-    del tmp_dir
 
 
 if __name__ == '__main__':

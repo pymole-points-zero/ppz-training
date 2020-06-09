@@ -1,6 +1,5 @@
 import argparse
 from tensorflow.keras import layers, models
-from tensorflow.keras.optimizers import Adam
 
 
 def add_common_layers(y):
@@ -92,28 +91,27 @@ def main(args):
     v = layers.Dense(1, activation="tanh", name='v')(v)
 
     model = models.Model(inputs=[input_tensor], outputs=[pi, v])
-    model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=Adam(args.lr))
 
-    model.save(args.output, save_format='h5')
+    model.save(args.output, save_format='h5', include_optimizer=False)
+
     print(model.summary())
 
 
 if __name__ == '__main__':
     # example:
-    # python make_network.py --width 5 --height 5 --residual_blocks 2 --lr 0.01 --dropout 0.3 --output model.h5
+    # python make_network.py --width 5 --height 5 --residual_blocks 2 --dropout 0.3 --output model.h5
     # TODO add help
     parser = argparse.ArgumentParser()
     parser.add_argument('--grounding', action='store_true')
     parser.add_argument('--width', type=int)
     parser.add_argument('--height', type=int)
     parser.add_argument('--residual_blocks', type=int)
-    parser.add_argument('--lr', type=float)
     parser.add_argument('--dropout', type=float)
     parser.add_argument('--output', type=str)
 
     args = parser.parse_args()
 
-    args.__setattr__('input_shape', (args.width, args.height, 2))
-    args.__setattr__('num_actions', args.width * args.height + int(args.grounding))
+    args.input_shape = (args.width, args.height, 4)
+    args.num_actions = args.width * args.height + int(args.grounding)
 
     main(args)
