@@ -29,19 +29,18 @@ def upload(model_path, url, params):
         network.close()
 
 
-def train(model, examples, batch_size):
+def train(model, positions, batch_size):
     model.fit(
-        x=examples['field'],
-        y=[examples['policy'], examples['value']],
+        x=positions['field'],
+        y=[positions['policy'], positions['value']],
         batch_size=batch_size,
         epochs=1,
     )
 
 
-def train_test_split(examples, train_ratio):
-    np.random.shuffle(examples)
-    split_index = int(len(examples) * train_ratio)
-    return examples[:split_index], examples[split_index:]
+def train_test_split(positions, train_ratio):
+    split_index = int(len(positions) * train_ratio)
+    return positions[:split_index], positions[split_index:]
 
 
 def load_model(tmp_dir, model_path):
@@ -53,18 +52,18 @@ def load_model(tmp_dir, model_path):
     return model
 
 
-def get_examples(latest_chunks):
-    examples = []
+def get_positions(latest_chunks):
+    positions = []
     for path in latest_chunks:
         with gzip.open(path, 'rb') as f:
-            example = np.load(f, allow_pickle=True)
-            examples.append(example)
+            chunks = np.load(f, allow_pickle=True)
+            positions.append(chunks)
 
-    # TODO shuffle this
-    examples = np.concatenate(examples)
-    print(len(examples), 'positions')
+    positions = np.concatenate(positions)
+    np.random.shuffle(positions)
+    print(len(positions), 'positions')
 
-    return examples
+    return positions
 
 
 def get_all_chunks(path):
@@ -85,10 +84,10 @@ def get_latest_chunks(path, pool_size, num_chunks, allow_less):
 
     pool = chunk_paths[:pool_size]
 
-    print('First chunk generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(chunk_paths[0])))
-    print('Last chunk generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(chunk_paths[-1])))
+    print('First game generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(pool[0])))
+    print('Last game generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(pool[-1])))
 
-    # shuffle pool and get chunks from pool
+    # get random games from pool
     random.shuffle(chunk_paths)
     chunk_paths = pool[:num_chunks]
 
@@ -100,7 +99,7 @@ def main(args):
         config = json.load(f)
 
     latest_chunks = get_latest_chunks(config['input_path'], config['num_chunks'], config['allow_less'])
-    examples = get_examples(latest_chunks)
+    positions = get_positions(latest_chunks)
     # train, test = train_test_split(examples, config.train_ratio)
 
     tmp_dir = tempfile.TemporaryDirectory()
@@ -109,7 +108,7 @@ def main(args):
     model.compile(loss=['categorical_crossentropy', 'mean_squared_error'], optimizer=SGD(
         learning_rate=config['lr'], momentum=config['momentum']))
 
-    train(model, examples, config['batch_size'])
+    train(model, positions, config['batch_size'])
 
     if 'model_output' in config:
         model.save(config['model_output'], save_format='h5', include_optimizer=False)
