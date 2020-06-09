@@ -1,5 +1,6 @@
 {
   "input_path": "/home/pymole/PycharmProjects/ppz-server/ppz_server/examples/2",
+  "pool_size": 500,
   "num_chunks": 100,
   "allow_less": true,
   "train_ratio": 0.9,

@@ -5,6 +5,7 @@ import sys
 import random
 import argparse
 import json
+import datetime
 import requests
 import gzip
 import io
@@ -51,6 +52,7 @@ def load_model(tmp_dir, model_path):
 
     return model
 
+
 def get_examples(latest_chunks):
     examples = []
     for path in latest_chunks:
@@ -69,10 +71,10 @@ def get_all_chunks(path):
     return [os.path.join(path, filename) for filename in glob.glob(os.path.join(path, '*.gz'))]
 
 
-def get_latest_chunks(path, num_chunks, allow_less):
+def get_latest_chunks(path, pool_size, num_chunks, allow_less):
     chunk_paths = get_all_chunks(path)
 
-    if len(chunk_paths) < num_chunks:
+    if len(chunk_paths) < pool_size:
         if allow_less:
             print(f'Got {len(chunk_paths)} of {num_chunks}')
         else:
@@ -81,11 +83,15 @@ def get_latest_chunks(path, num_chunks, allow_less):
 
     chunk_paths.sort(key=os.path.getmtime, reverse=True)
 
-    chunk_paths = chunk_paths[:num_chunks]
-    print('First chunk generated at ', os.path.getmtime(chunk_paths[0]))
-    print('Last chunk generated at ', os.path.getmtime(chunk_paths[-1]))
+    pool = chunk_paths[:pool_size]
 
+    print('First chunk generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(chunk_paths[0])))
+    print('Last chunk generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(chunk_paths[-1])))
+
+    # shuffle pool and get chunks from pool
     random.shuffle(chunk_paths)
+    chunk_paths = pool[:num_chunks]
+
     return chunk_paths
 
 
