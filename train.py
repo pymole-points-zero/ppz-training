@@ -98,7 +98,8 @@ def main(args):
     with open(args.config, 'r') as f:
         config = json.load(f)
 
-    latest_chunks = get_latest_chunks(config['input_path'], config['num_chunks'], config['allow_less'])
+    latest_chunks = get_latest_chunks(config['input_path'], config['pool_size'],
+                                      config['num_chunks'], config['allow_less'])
     positions = get_positions(latest_chunks)
     # train, test = train_test_split(examples, config.train_ratio)
 
