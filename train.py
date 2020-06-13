@@ -72,17 +72,17 @@ def get_all_chunks(path):
 
 def get_latest_chunks(path, pool_size, num_chunks, allow_less):
     chunk_paths = get_all_chunks(path)
+    print(len(chunk_paths), 'games at all')
 
     if len(chunk_paths) < pool_size:
-        if allow_less:
-            print(f'Got {len(chunk_paths)} of {num_chunks}')
-        else:
-            print(f'Not enough chunks {len(chunk_paths)}/{num_chunks}')
+        if not allow_less:
+            print(f'Not enough chunks {len(chunk_paths)}/{pool_size}')
             sys.exit(1)
 
     chunk_paths.sort(key=os.path.getmtime, reverse=True)
 
     pool = chunk_paths[:pool_size]
+    print(f'Constructed pool. {len(pool)} of {pool_size}')
 
     print('First game generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(pool[0])))
     print('Last game generated at ', datetime.datetime.fromtimestamp(os.path.getmtime(pool[-1])))
@@ -90,6 +90,8 @@ def get_latest_chunks(path, pool_size, num_chunks, allow_less):
     # get random games from pool
     random.shuffle(chunk_paths)
     chunk_paths = pool[:num_chunks]
+
+    print(f"Randomly selected {chunk_paths} games from pool")
 
     return chunk_paths
 
