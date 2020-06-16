@@ -24,7 +24,7 @@ class TrainingServer(BaseHTTPRequestHandler):
 
         # start training process
         args = [
-            os.path.join(CWD, 'venv', 'bin', 'python'),
+            'python',
             os.path.join(CWD, 'train.py'),
             '--config', os.path.join(CWD, 'configs/config.json')
         ]
